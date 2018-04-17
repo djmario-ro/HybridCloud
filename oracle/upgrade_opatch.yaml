@@ -1,0 +1,35 @@
+---
+- hosts: database
+  tasks:
+  - name: Check if /etc/oratab exists
+    stat:
+      path: /etc/oratab
+    register: oratab
+ 
+  - debug:
+      msg: "/etc/oratab does not exists"
+    when: oratab.stat.exists == false
+ 
+  - name: Check if unzip exists (if not we wont be able to unzip the opatch zipfile)
+    shell: "command -v unzip"
+    register: unzip_exists
+ 
+  - debug:
+      msg: "unzip cannot be found"
+    when: unzip_exists == false
+ 
+  - name: Copy the opatch zipfile to the target oracle home
+    copy:
+      src: /stage/p6880880_112000_Linux-x86-64.zip
+      dest: /u01/oracle/11204
+ 
+  - name: Upgrade opatch
+    shell: unzip -o /u01/oracle/11204/p6880880_112000_Linux-x86-64.zip -d /u01/oracle/11204
+    register: unzip
+    failed_when: unzip.rc != 0
+ 
+  - name: Cleanup the zipfile from the target home
+    file:
+      name: /u01/oracle/11204/p6880880_112000_Linux-x86-64.zip
+      state: absent
+ 

@@ -1,0 +1,6 @@
+---
+- hosts: windows
+  gather_facts: no
+  tasks:
+    - name: List running processes
+      win_shell: Get-Service

@@ -1,0 +1,29 @@
+---
+- hosts: windows
+  gather_facts: no
+  tasks:
+  - win_shell: Get-Process > c:\get_process_running.txt
+  - win_shell: tasklist /svc /fi "imagename eq svchost.exe" > c:\get_process_svchost.txt
+  - win_shell: Get-Service > c:\get_services.txt
+  - fetch:
+      src: c:\get_process_running.txt
+      flat: yes
+      dest: "{{ inventory_hostname }}.txt"
+  - fetch:
+      src: c:\get_process_svchost.txt
+      flat: yes
+      dest: "{{ inventory_hostname }}_svchost.txt"
+  - fetch:
+      src: c:\get_services.txt
+      flat: yes
+      dest: "{{ inventory_hostname }}_service.txt"
+
+  - win_file:
+      path: c:\get_running_processes.ps1
+      state: absent
+  - win_file:
+      path: c:\get_process_svchost.txt
+      state: absent
+  - win_file:
+      path: c:\get_services.txt
+      state: absent

@@ -1,0 +1,90 @@
+---
+- hosts: gitracstgdb02.resources-dev.atosorigin.local
+  gather_facts: no
+
+  vars:
+    oracle_home_size_gb: 10
+    tmp_size_gb: 1
+    oracle_base: "/oracle/{{ sid }}"
+    oracle_home: "/oracle/{{ sid }}/12102"
+    install_dir: /sapcd/sapgit/oracle/INSTALLATION_12102/51047708/database
+    template_response_file: 12102_swonly_sap_responsefile.rsp
+
+  remote_user: oracle
+
+  tasks:
+  - fail: msg="Bailing out. this play requires '--extra-vars \"sid=<SID>\""
+    when: sid is undefined
+
+  - name: get remote_node name
+    action: shell olsnodes | grep -v `olsnodes -l`
+    register: remote_node
+    failed_when: remote_node == ""
+    changed_when: False
+
+  - name: get domain_name
+    action: shell cat /etc/resolv.conf | grep search | awk '{print $2}'
+    register: domain_name
+    failed_when: domain_name.stdout == ""
+    changed_when: False
+
+  - name: check oraclehome free disk space
+    action: shell df -P /oracle/{{ sid }} | awk 'END { print $4 }'
+    register: oraclehomesize
+    failed_when: oraclehomesize.stdout|int < oracle_home_size_gb * 1024 * 1024
+    changed_when: False
+
+ 
+  - name: check tmp free disk space
+    action: shell df -P /tmp | awk 'END { print $4 }'
+    register: tmpsize
+    failed_when: tmpsize.stdout|int < tmp_size_gb * 1024 * 1024
+    changed_when: False
+
+  - name: check oraclehome free disk space (remote_node)
+    action: shell df -P /oracle/{{ sid }} | awk 'END { print $4 }'
+    register: remote_oraclehomesize
+    failed_when: remote_oraclehomesize.stdout|int < oracle_home_size_gb * 1024 * 1024
+    delegate_to: "{{ remote_node.stdout }}.{{ domain_name.stdout }}"
+    changed_when: False
+
+  - name: check tmp free disk space (remote_node)
+    action: shell df -P /tmp | awk '{ print $4 }'
+    register: remote_tmpsize
+    failed_when: tmpsize.stdout|int < tmp_size_gb * 1024 * 1024
+    delegate_to: "{{ remote_node.stdout }}.{{ domain_name.stdout }}"
+    changed_when: False
+
+  - name: create response file
+    local_action: shell cat {{ template_response_file }} | sed 's:TEMPLATE:{{ sid }}:g' > {{ sid }}_sap_responsefile.rsp
+
+  - copy:
+      src: "{{ sid }}_sap_responsefile.rsp"
+      dest: "/tmp/{{ sid }}_sap_responsefile.rsp"
+
+  - name: install database software
+    action: shell {{ install_dir}}/runInstaller -ignoreSysPrereqs -ignorePrereq -waitforcompletion -showProgress -silent -responseFile /tmp/{{ sid }}_sap_responsefile.rsp
+    register: install
+    failed_when: "'Successfully Setup Software.' not in install.stdout"
+
+  - file:
+      src: "/oracle/{{ sid }}/12102"
+      dest: "/oracle/{{ sid }}/121"
+      state: link 
+
+  - file:
+      src: "/oracle/{{ sid }}/12102"
+      dest: "/oracle/{{ sid }}/121"
+      state: link
+      delegate_to: "{{ remote_node.stdout }}.{{ domain_name.stdout }}"
+
+  - name: root.sh 
+    action: shell /oracle/{{ sid }}/12102/root.sh
+    become: true
+    become_method: sudo
+      
+  - name: root.sh (remote_node)
+    action: shell /oracle/{{ sid }}/12102/root.sh
+    become: true
+    become_method: sudo
+    delegate_to: "{{ remote_node.stdout }}.{{ domain_name.stdout }}"

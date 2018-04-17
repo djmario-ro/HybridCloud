@@ -1,0 +1,6 @@
+ansible_user: A592793@WW930.MY-IT-SOLUTIONS.NET
+ansible_port: 5986
+ansible_connection: winrm
+ansible_winrm_transport: kerberos
+ansible_winrm_server_cert_validation: ignore
+ansible_winrm_kerberos_delegation: true
