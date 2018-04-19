@@ -2,9 +2,9 @@
 - hosts: windows
   gather_facts: no
   tasks:
-  - win_shell: Get-Process > c:\get_process_running.txt
+  - win_shell: Get-Process | Format-Wide > c:\get_process_running.txt
   - win_shell: tasklist /svc /fi "imagename eq svchost.exe" > c:\get_process_svchost.txt
-  - win_shell: Get-Service > c:\get_services.txt
+  - win_shell: Get-Service | Format-Wide > c:\get_services.txt
   - fetch:
       src: c:\get_process_running.txt
       flat: yes

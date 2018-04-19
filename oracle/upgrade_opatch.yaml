@@ -1,6 +1,19 @@
 ---
-- hosts: database
+- hosts: oracle_staging
+  gather_facts: no
+  remote_user: grid
+
+  vars:
+    oracle_home_size_gb: 10
+    tmp_size_gb: 1
+    oracle_base: "/oracle/{{ sid }}"
+    oracle_home: "/oracle/{{ sid }}/12.2.0.1"
+    opatch_location: /stage/Database_software/vio/OPatch_12102_OCT_2017/p6880880_121010_Linux-x86-64.zip
+
   tasks:
+  - fail: msg="Bailing out. this play requires '--extra-vars \"sid=<SID>\""
+    when: sid is undefined
+
   - name: Check if /etc/oratab exists
     stat:
       path: /etc/oratab
@@ -18,18 +31,22 @@
       msg: "unzip cannot be found"
     when: unzip_exists == false
  
-  - name: Copy the opatch zipfile to the target oracle home
-    copy:
-      src: /stage/p6880880_112000_Linux-x86-64.zip
-      dest: /u01/oracle/11204
+#  - name: Copy the opatch zipfile to the target oracle home
+#    copy:
+#      src: /stage/p6880880_112000_Linux-x86-64.zip
+#      dest: /u01/oracle/11204
+  - name: remove old opatch
+    file:
+     name: "{{ oracle_home }}/OPatch" 
+     state: absent
  
   - name: Upgrade opatch
-    shell: unzip -o /u01/oracle/11204/p6880880_112000_Linux-x86-64.zip -d /u01/oracle/11204
+    shell: unzip {{ opatch_location }} -d {{ oracle_home }}
     register: unzip
     failed_when: unzip.rc != 0
  
-  - name: Cleanup the zipfile from the target home
-    file:
-      name: /u01/oracle/11204/p6880880_112000_Linux-x86-64.zip
-      state: absent
+#  - name: Cleanup the zipfile from the target home
+#    file:
+#      name: /u01/oracle/11204/p6880880_112000_Linux-x86-64.zip
+#      state: absent
  
