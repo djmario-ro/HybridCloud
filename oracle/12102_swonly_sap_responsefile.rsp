@@ -35,7 +35,7 @@ oracle.install.option=INSTALL_DB_SWONLY
 # first hostname found on the system. (e.g., for systems with multiple hostnames 
 # and network interfaces)
 #-------------------------------------------------------------------------------
-ORACLE_HOSTNAME=gitracstgdb01.resources-dev.atosorigin.local
+ORACLE_HOSTNAME=gitorastgdb1a.resources-dev.atosorigin.local
 
 #-------------------------------------------------------------------------------
 # Specify the Unix group to be set for the inventory directory.  
@@ -167,7 +167,7 @@ oracle.install.db.rac.configurationType=
 # 
 # Example : oracle.install.db.CLUSTER_NODES=node1,node2
 #------------------------------------------------------------------------------
-oracle.install.db.CLUSTER_NODES=gitracstgdb01,gitracstgdb02
+oracle.install.db.CLUSTER_NODES=gitorastgdb1a,gitorastgdb1b
 
 #------------------------------------------------------------------------------
 # This variable is used to enable or disable RAC One Node install.

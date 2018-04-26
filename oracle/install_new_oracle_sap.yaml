@@ -1,5 +1,5 @@
 ---
-- hosts: gitracstgdb02.resources-dev.atosorigin.local
+- hosts: gitorastgdb1a.resources-dev.atosorigin.local
   gather_facts: no
 
   vars:
