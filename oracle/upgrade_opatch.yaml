@@ -30,7 +30,7 @@
   - debug:
       msg: "unzip cannot be found"
     when: unzip_exists == false
- 
+# TEST2 
 #  - name: Copy the opatch zipfile to the target oracle home
 #    copy:
 #      src: /stage/p6880880_112000_Linux-x86-64.zip
